@@ -1,4 +1,4 @@
-# CognitiveServicesWorkshop
+# Cognitive Services and real-time Serverless with Signal R
 
 Let's start with a workshop overview. 
 The main idea is to build a real-time serverless application with Translation and "Speech to text" Cognitive services from Microsoft.
