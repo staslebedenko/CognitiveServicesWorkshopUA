@@ -1,9 +1,12 @@
 # CognitiveServicesWorkshop
 
-Lets start with a workshop overview. It is based on two workflows from microsoft. 
-Cognitive service sample with voice to text and translations and real-time application clients with Azure SignalR service and Azure Functions. Translation will be performed via sv-en configuration of cognitive services. This kind of application solve support communication issues in the near realtime.
+Lets start with a workshop overview. 
+The main idea is to build realtime serverless application with Translation and Speech to text Cognitive services from Microsoft.
+Your goal is to use this tutorial to build your own idea. Tutorial provides links to Cognitive services documentation, scenarios etc.
 
 Requirements for this tutorial is Visual Studio 2019 community or VS Code. Basic knowledge of C#
+
+Below are three steps to build an SignalR realtime app, connect it to translation services and then use Speech to Text.
 
 # Step 1. Infrastructure
 
@@ -47,25 +50,37 @@ Take script below to deploy all needed infrastructure
     --resource-group $groupName --query [0].name -o tsv) \
     --resource-group $groupName --query primaryConnectionString -o tsv)
 
-    printf "\n\nReplace <signalConnString> with:\n$signalConnString\n\n"
+	#add cors if you know your domains already.
+	#az signalr cors add --name $signalName --resource-group $groupName --allowed-origins "http://example1.com" "https://example2.com"
+	signalKey=$(az signalr key list --name $signalName --resource-group $groupName --query primaryKey -o tsv)
 
-    #add cors if you know your domains already.
-    #az signalr cors add --name $signalName --resource-group $groupName --allowed-origins "http://example1.com" "https://example2.com"
-    signalKey=$(az signalr key list --name $signalName --resource-group $groupName --query primaryKey -o tsv)
+	speechName=Speech${groupName,,}
+	textName=Text${groupName,,}
+	az cognitiveservices account list-skus --location $location --kind SpeechServices
 
-    printf "\n Replace <signalKey> with:\n$signalKey\n\n"
+	az cognitiveservices account create --name $speechName --resource-group $groupName --location $location \
+	--kind SpeechServices --sku S0 --yes
 
-    speechName=${groupName,,}
-    az cognitiveservices account list-skus --location $location --kind SpeechServices
-    az cognitiveservices account create --name $speechName --resource-group $groupName --location $location \
-    --kind SpeechServices --sku S0 --yes
+	speechKey1=$(az cognitiveservices account keys list --name $speechName --resource-group $groupName --query "key1" -o tsv)
 
-    speechKey1=$(az cognitiveservices account keys list --name $speechName --resource-group $groupName --query "key1" -o tsv)
+	az cognitiveservices account create --name $textName --resource-group $groupName --location $location \
+	--kind TextTranslation --sku S0 --yes
 
-    printf "\n\n Change <speechKey1> with:\n$speechKey1\n\n"
+	textKey1=$(az cognitiveservices account keys list --name $textName --resource-group $groupName --query "key1" -o tsv)
+
+	printf "\n\n Change <speechKey1> with:\n$speechKey1\n\n"
+
+	printf "\n\n Change <textKey1> with:\n$textKey1\n\n"
+
+	printf "\n Replace <signalKey> with:\n$signalKey\n\n"
+
+	printf "\n\nReplace <signalConnString> with:\n$signalConnString\n\n"
 ```
 
-3. Copy SignalR connection string and Cognitive service key to notepad.
+FYI link below provides reference list of Cognitive Services types with CLI reference
+https://docs.microsoft.com/en-us/azure/cognitive-services/cognitive-services-apis-create-account-cli?tabs=windows
+
+3. Copy SignalR connection string and Cognitive service keys to notepad.
 
 4. Signal IR and Azure Functions. Steps below following official MS tutorial with important details
 	https://docs.microsoft.com/en-us/azure/azure-signalr/signalr-quickstart-azure-functions-csharp
@@ -114,12 +129,141 @@ Be aware of the cors issues and http vs https usage. My suggestion is to deploy 
 The next step is to use Cognitive Services translation samples and integrate them with existing solutions. You can use advanced scenario with speech to text and then translation. But lets start with simple case.
 The interesting point is that you need to combine two tutorials inside one serverless application.
 
+
 1. We will be following this tutorial
 	https://docs.microsoft.com/en-us/azure/cognitive-services/translator/quickstart-translate?pivots=programming-language-csharp
 
-2. Essentialy you need to take source code from tutorial above and add it to the new Azure Function.
+2. Essentially you need to take source code from tutorial above and add it to the new Azure Function, so you can call translation API from code.
 
-3. Create Azure Function in Visual studio and add calls to the translations.
+3. Get Translation subscription key from Azure CLI output and set it to global variables along with translator text endpoint. Use <textKey1> use setx.
+	
+	```
+	setx TRANSLATOR_TEXT_SUBSCRIPTION_KEY "432432532532"
+	setx TRANSLATOR_TEXT_ENDPOINT "https://api.cognitive.microsofttranslator.com/"
+	```
+
+
+4. Create Azure Function with HTTP trigger in Visual studio.
+
+5. Add namespaces and Json nuget to project
+	using System;
+	using System.Net.Http;
+	using System.Text;
+	using System.Threading.Tasks;
+	// Install Newtonsoft.Json with NuGet
+	using Newtonsoft.Json;
+
+6. Create classes for the JSON response
+
+```
+	public class TranslationResult
+	{
+	    public DetectedLanguage DetectedLanguage { get; set; }
+	    public TextResult SourceText { get; set; }
+	    public Translation[] Translations { get; set; }
+	}
+
+	public class DetectedLanguage
+	{
+	    public string Language { get; set; }
+	    public float Score { get; set; }
+	}
+
+	public class TextResult
+	{
+	    public string Text { get; set; }
+	    public string Script { get; set; }
+	}
+
+	public class Translation
+	{
+	    public string Text { get; set; }
+	    public TextResult Transliteration { get; set; }
+	    public string To { get; set; }
+	    public Alignment Alignment { get; set; }
+	    public SentenceLength SentLen { get; set; }
+	}
+
+	public class Alignment
+	{
+	    public string Proj { get; set; }
+	}
+
+	public class SentenceLength
+	{
+	    public int[] SrcSentLen { get; set; }
+	    public int[] TransSentLen { get; set; }
+	}
+```
+
+7. Get subscription information from environment variables
+	
+	```
+	string subscriptionKey = Environment.GetEnvironmentVariable("TRANSLATOR_TEXT_SUBSCRIPTION_KEY");
+	string endpoint = Environment.GetEnvironmentVariable("TRANSLATOR_TEXT_ENDPOINT");
+	```
+
+8. Add translate request class. And change it to output translated values instead of console app.
+
+```
+	static public async Task TranslateTextRequest(string subscriptionKey, string endpoint, string route, string inputText)
+	{
+		using (var client = new HttpClient())
+		using (var request = new HttpRequestMessage())
+		{
+		request.Method = HttpMethod.Post;
+		request.RequestUri = new Uri(endpoint + route);
+		request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+		request.Headers.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
+
+		HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+		string result = await response.Content.ReadAsStringAsync();
+		TranslationResult[] deserializedOutput = JsonConvert.DeserializeObject<TranslationResult[]>(result);
+		foreach (TranslationResult o in deserializedOutput)
+		{
+		    // Print the detected input language and confidence score.
+		    Console.WriteLine("Detected input language: {0}\nConfidence score: {1}\n", o.DetectedLanguage.Language, o.DetectedLanguage.Score);
+		    // Iterate over the results and print each translation.
+		    foreach (Translation t in o.Translations)
+		    {
+			Console.WriteLine("Translated to {0}: {1}", t.To, t.Text);
+		    }
+		}
+		}
+
+	}
+```
+
+9. Call it from function
+
+```
+[FunctionName("Function1")]
+        public static async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+
+            string textToTranslate = req.Query["text"];
+            string subscriptionKey = Environment.GetEnvironmentVariable("TRANSLATOR_TEXT_SUBSCRIPTION_KEY");
+            string endpoint = Environment.GetEnvironmentVariable("TRANSLATOR_TEXT_ENDPOINT");
+            string route = "/translate?api-version=3.0&to=de&to=it&to=ja&to=th";
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            textToTranslate = textToTranslate ?? data?.name;
+
+            string translationResult = await TranslateTextRequest(subscriptionKey, endpoint, route, textToTranslate);
+
+            string responseMessage = string.IsNullOrEmpty(translationResult)
+                ? "This HTTP triggered function executed successfully. Pass a Text in the query string or in the request body for a personalized response."
+                : $"Hello, {translationResult}. This HTTP triggered function executed successfully.";
+
+            return new OkObjectResult(responseMessage);
+        }
+```
+
+10. Fix bugs :).
 	
   
 # Cognitive services Speech to text and translation
