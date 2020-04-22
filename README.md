@@ -127,10 +127,13 @@ Be aware of the cors issues and http vs https usage. My suggestion is to deploy 
 # Cognitive services translations
 
 The next step is to use Cognitive Services translation samples and integrate them with existing solutions. You can use advanced scenario with speech to text and then translation. But lets start with simple case.
-The interesting point is that you need to combine two tutorials inside one serverless application.
+The main goal is to combine two tutorials inside one serverless application.
+
+Text translator documentation(quite good)
+https://docs.microsoft.com/en-us/azure/cognitive-services/translator/
 
 
-1. We will be following this tutorial
+1. We will be following slightly adjusted version of this tutorial.
 	https://docs.microsoft.com/en-us/azure/cognitive-services/translator/quickstart-translate?pivots=programming-language-csharp
 
 2. Essentially you need to take source code from tutorial above and add it to the new Azure Function, so you can call translation API from code.
@@ -268,13 +271,30 @@ The interesting point is that you need to combine two tutorials inside one serve
   
 # Cognitive services Speech to text and translation
 
-	Lets take a look at general service drscription of Speech to text. 
-	https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/get-started
+Lets take a look at general service description of Speech to text. This step covers console application under Windows 10.
 
-1. Lets take a look at the demo description of the workshop.
-	https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/quickstart/csharp/dotnetcore/translate-speech-to-text
+https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/get-started
+https://github.com/Azure-Samples/cognitive-services-speech-sdk - list of examples.
 
-2. We already have deployed infrastructure and secret code output from bash console.
+1. Lets take a look at the demo description of the workshop and GitHub repository.
+https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/get-started
 
-3. Lets proceed with steps
+2. Get console application from this GitHub repository
+https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/quickstart/csharp/dotnetcore/translate-speech-to-text
 
+3. Replace values with northeurope region and <speechKey1> from Azure CLI output.
+	
+```
+	var config = SpeechTranslationConfig.FromSubscription("YourSubscriptionKey", "YourServiceRegion");
+```
+
+4. Run(F5) console application, fix bugs and observe results. Update language configuration to the needed source.
+
+5. Now you need to send Speech to text results to your translator function.
+
+6. Now its time to broadcast tranlsation text to Azure function with help of the following code.
+https://github.com/aspnet/AzureSignalR-samples/tree/master/samples/Management/Sig
+
+
+
+# Thanks :)
