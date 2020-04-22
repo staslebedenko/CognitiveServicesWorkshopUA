@@ -1,12 +1,12 @@
 # CognitiveServicesWorkshop
 
-Lets start with a workshop overview. 
-The main idea is to build realtime serverless application with Translation and Speech to text Cognitive services from Microsoft.
-Your goal is to use this tutorial to build your own idea. Tutorial provides links to Cognitive services documentation, scenarios etc.
+Let's start with a workshop overview. 
+The main idea is to build a real-time serverless application with Translation and "Speech to text" Cognitive services from Microsoft.
+Your goal is to use this tutorial to build your idea. The tutorial provides links to Cognitive services documentation, scenarios, etc.
 
-Requirements for this tutorial is Visual Studio 2019 community or VS Code. Basic knowledge of C#
+Requirements for this tutorial are Visual Studio 2019 community or VS Code. Basic knowledge of C#
 
-Below are three steps to build an SignalR realtime app, connect it to translation services and then use Speech to Text.
+Below are three steps to build a SignalR real-time app, connect it to translation services, and then use Speech to Text.
 
 # Step 1. Infrastructure
 
@@ -77,7 +77,7 @@ Take script below to deploy all needed infrastructure
 	printf "\n\nReplace <signalConnString> with:\n$signalConnString\n\n"
 ```
 
-FYI link below provides reference list of Cognitive Services types with CLI reference
+FYI, the link below provides a reference list of Cognitive Services types with CLI reference
 https://docs.microsoft.com/en-us/azure/cognitive-services/cognitive-services-apis-create-account-cli?tabs=windows
 
 3. Copy SignalR connection string and Cognitive service keys to notepad.
@@ -105,9 +105,9 @@ https://docs.microsoft.com/en-us/azure/cognitive-services/cognitive-services-api
 
 12. Visual Studio: In the Debug menu, select Start debugging to run the application.
 
-13. You can deploy function app to Azure via publishing profile, if you want to.
+13. You can deploy a function app to Azure via publishing profile if you want to.
 
-14. Lets connect local and test remote applications.
+14. Let's connect local and test remote applications.
 
 15. There is a sample single page web application hosted in GitHub for your convenience. Open your browser to https://azure-samples.github.io/signalr-service-quickstart-serverless-chat/demo/chat-v2/.
 
@@ -121,19 +121,19 @@ https://docs.microsoft.com/en-us/azure/cognitive-services/cognitive-services-api
 
 20. Open another instance of the web application in a different browser window. You will see that any messages sent will appear in all instances of the application.
     
-Be aware of the cors issues and http vs https usage. My suggestion is to deploy function to the Web app and setup CORS exceptions in configuration.
+Be aware of the cors issues and HTTP vs. HTTPS usage. My suggestion is to deploy the function to the Web app and setup CORS exceptions in the configuration.
 
 
 # Cognitive services translations
 
-The next step is to use Cognitive Services translation samples and integrate them with existing solutions. You can use advanced scenario with speech to text and then translation. But lets start with simple case.
+The next step is to use Cognitive Services translation samples and integrate them with existing solutions. You can use advanced scenarios with "Speech to text" and then translation. But let's start with a simple case.
 The main goal is to combine two tutorials inside one serverless application.
 
 Text translator documentation(quite good)
 https://docs.microsoft.com/en-us/azure/cognitive-services/translator/
 
 
-1. We will be following slightly adjusted version of this tutorial.
+1. We will be following a slightly adjusted version of this tutorial.
 	https://docs.microsoft.com/en-us/azure/cognitive-services/translator/quickstart-translate?pivots=programming-language-csharp
 
 2. Essentially you need to take source code from tutorial above and add it to the new Azure Function, so you can call translation API from code.
@@ -146,7 +146,7 @@ https://docs.microsoft.com/en-us/azure/cognitive-services/translator/
 	```
 
 
-4. Create Azure Function with HTTP trigger in Visual studio.
+4. Create an Azure Function with HTTP trigger in Visual studio.
 
 5. Add namespaces and Json nuget to project
 	using System;
@@ -271,7 +271,7 @@ https://docs.microsoft.com/en-us/azure/cognitive-services/translator/
   
 # Cognitive services Speech to text and translation
 
-Lets take a look at general service description of Speech to text. This step covers console application under Windows 10.
+Let's take a look at general service description of Speech to text. This step covers console application under Windows 10.
 
 https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/get-started
 https://github.com/Azure-Samples/cognitive-services-speech-sdk - list of examples.
@@ -288,11 +288,11 @@ https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/quick
 	var config = SpeechTranslationConfig.FromSubscription("YourSubscriptionKey", "YourServiceRegion");
 ```
 
-4. Run(F5) console application, fix bugs and observe results. Update language configuration to the needed source.
+4. Run(F5) console application, fix bugs, and observe results. Update language configuration to the needed source.
 
-5. Now you need to send Speech to text results to your translator function.
+5. Now you need to send "Speech to text" results to your translator function.
 
-6. Now its time to broadcast tranlsation text to Azure function with help of the following code.
+6. Now its time to broadcast translation text to Azure function with the help of the following code.
 https://github.com/aspnet/AzureSignalR-samples/tree/master/samples/Management/Sig
 
 
