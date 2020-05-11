@@ -1,8 +1,8 @@
 # Cognitive Services and real-time Serverless with Signal R
 
 Let's start with a workshop overview. 
-The main idea is to build a real-time serverless application with Translation and "Speech to text" Cognitive services from Microsoft.
-Your goal is to use this tutorial to build your idea. The tutorial provides links to Cognitive services documentation, scenarios, etc.
+The main idea is to build a real-time serverless application with "Translation" and "Speech to text" Cognitive services from Microsoft.
+The goal is to use this tutorial to build prototype and the use it for your own idea. The tutorial provides links to Cognitive services documentation, scenarios, etc.
 
 Requirements for this tutorial are Visual Studio 2019 community or VS Code. Basic knowledge of C#
 
@@ -298,3 +298,6 @@ https://github.com/aspnet/AzureSignalR-samples/tree/master/samples/Management/Si
 
 
 # Thanks :)
+
+P.S. This is only beginning, V2 version of this workshop will be dedicated to the Data Extraction via LUIS.
+https://docs.microsoft.com/en-us/azure/cognitive-services/luis/luis-concept-data-extraction?tabs=V2
